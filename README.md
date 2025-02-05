@@ -1,4 +1,4 @@
-# Using Unreal Engine with llama.cpp For AMD GPU.
+# Using Unreal Engine with llama.cpp for AMD GPU.
 
 ### Requires following libs:
 - OpenMP(libomp.lib)
