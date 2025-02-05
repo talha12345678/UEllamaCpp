@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{21187A63-49E0-F012-679C-A7B9D2C1303E}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "UEllamaCpp",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"CoreUObject"
+			]
+		}
+	]
+}
