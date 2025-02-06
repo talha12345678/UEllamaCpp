@@ -21,17 +21,16 @@ public class llamaCppPluginLibrary : ModuleRules
 			//include
 			PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "llamaCpp", "Include"));
 
-			//libs
-			PublicLibraryPaths.Add(Path.Combine(ModuleDirectory, "x64"));
-			//PublicLibraryPaths.Add(Path.Combine(ModuleDirectory, "llamaCpp", "Lib"));
-			PublicLibraryPaths.Add("C:/Program Files/AMD/ROCm/6.1/lib");
-		
+			//libs			
+			PublicLibraryPaths.Add("$(HIP_PATH)/lib");
+			PublicLibraryPaths.Add(Path.Combine(ModuleDirectory, "llamaCpp", "Lib"));
 
 			PublicAdditionalLibraries.Add("libomp.lib");
+
 			PublicAdditionalLibraries.Add("amdhip64.lib");
 			PublicAdditionalLibraries.Add("rocblas.lib");
 			PublicAdditionalLibraries.Add("hipblas.lib");
-			//PublicAdditionalLibraries.Add("libiomp5md.lib");
+			
 			PublicAdditionalLibraries.Add("common.lib");
 			PublicAdditionalLibraries.Add("llama.lib");
 			PublicAdditionalLibraries.Add("ggml-base.lib");

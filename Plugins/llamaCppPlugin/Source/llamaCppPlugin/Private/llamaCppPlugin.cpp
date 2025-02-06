@@ -4,7 +4,7 @@
 #include "Core.h"
 #include "Modules/ModuleManager.h"
 #include "Interfaces/IPluginManager.h"
-#include "llamaCpp/Include/llama.h"
+#include "llamaCppPluginLibrary/llamaCpp/Include/llama.h"
 #include "llamaCppPluginLibrary/ExampleLibrary.h"
 
 #define LOCTEXT_NAMESPACE "FllamaCppPluginModule"
