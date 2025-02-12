@@ -4,7 +4,7 @@
 #include "Core.h"
 #include "Modules/ModuleManager.h"
 #include "Interfaces/IPluginManager.h"
-#include "llamaCppPluginLibrary/llamaCpp/Include/llama.h"
+//#include "llamaCppPluginLibrary/llamaCpp/Include/llama.h"
 #include "llamaCppPluginLibrary/ExampleLibrary.h"
 
 #define LOCTEXT_NAMESPACE "FllamaCppPluginModule"
@@ -35,7 +35,7 @@ void FllamaCppPluginModule::StartupModule()
 	{
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ThirdPartyLibraryError", "Failed to load example third party library"));
 	}
-	ggml_backend_load_all();
+	//ggml_backend_load_all();
 	//llama_model_params model_params = llama_model_default_params();
 	//int ngl = 99;
 	//model_params.n_gpu_layers = ngl;

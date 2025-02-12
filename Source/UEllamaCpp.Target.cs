@@ -10,5 +10,6 @@ public class UEllamaCppTarget : TargetRules
 		Type = TargetType.Game;
 
 		ExtraModuleNames.AddRange( new string[] { "UEllamaCpp" } );
+		
 	}
 }

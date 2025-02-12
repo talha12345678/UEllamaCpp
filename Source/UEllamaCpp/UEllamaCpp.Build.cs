@@ -1,5 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+using System;
+using System.IO;
 using UnrealBuildTool;
 
 public class UEllamaCpp : ModuleRules
@@ -12,9 +14,16 @@ public class UEllamaCpp : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
+		//string ThirdPartyPath = Path.Combine(ModuleDirectory, "../", "../", "Plugins", "llamaCppPlugin", "Source", "ThirdParty");
+		//string LlamaIncludePath = Path.Combine(ThirdPartyPath, "llamaCppPluginLibrary", "llamaCpp", "Include");
+		//string LlamaIncludePath = Path.Combine(ThirdPartyPath, "llamaCppPluginLibrary");
+		//System.Console.WriteLine("LlamaIncludePath: " + LlamaIncludePath);
+		//PublicIncludePaths.Add(LlamaIncludePath);
+
+
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
+
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
 

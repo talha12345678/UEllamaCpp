@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "DummyObject.generated.h"
+#include "LlamaHObject.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UELLAMACPP_API UDummyObject : public UObject
+class LLAMACPPPLUGIN_API ULlamaHObject : public UObject
 {
 	GENERATED_BODY()
+	
 };

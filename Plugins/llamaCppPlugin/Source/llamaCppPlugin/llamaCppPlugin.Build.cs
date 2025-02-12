@@ -15,19 +15,27 @@ public class llamaCppPlugin : ModuleRules
 {
 	public llamaCppPlugin(ReadOnlyTargetRules Target) : base(Target)
 	{
-		//Type = ModuleType.External;
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
+		//string ThirdPartyPath = Path.Combine(ModuleDirectory, "../", "ThirdParty");
+		//string LlamaIncludePath = Path.Combine(ThirdPartyPath, "llamaCppPluginLibrary", "llamaCpp", "Include");
+		//System.Console.WriteLine("LlamaIncludePath: " + LlamaIncludePath);
+		//PublicIncludePaths.Add(LlamaIncludePath);
+
 		PublicIncludePaths.AddRange(
 			new string[] {
-				// ... add public include paths required here ...
+				// ... add public include paths required here ...				
+				//"../ThirdParty/llamaCppPluginLibrary/llamaCpp/Include"
+				//"./ThirdParty/llamaCppPluginLibrary/llamaCpp/Include"
+				//"./ThirdParty/llamaCppPluginLibrary"
+
 			}
 			);
 				
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				// ... add other private include paths required here ...
+				// ... add other private include paths required here ...				
 			}
 			);
 			
