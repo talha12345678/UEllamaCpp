@@ -44,6 +44,7 @@ public class llamaCppPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
+				//"CoreUObject",
 				"llamaCppPluginLibrary",
 				"Projects"
 				// ... add other public dependencies that you statically link with here ...

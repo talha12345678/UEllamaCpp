@@ -13,10 +13,10 @@ public class llamaCppPluginLibrary : ModuleRules
 		{
 			// Add the import library
 			PublicLibraryPaths.Add(Path.Combine(ModuleDirectory, "x64", "Release"));
-			PublicAdditionalLibraries.Add("ExampleLibrary.lib");
+			PublicAdditionalLibraries.Add("LlamaCppHelperLib.lib");
 
 			// Delay-load the DLL, so we can load it from the right place first
-			PublicDelayLoadDLLs.Add("ExampleLibrary.dll");
+			PublicDelayLoadDLLs.Add("LlamaCppHelperLib.dll");
 
 			//include
 			PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "llamaCpp", "Include"));
