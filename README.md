@@ -1,5 +1,5 @@
 # Using Unreal Engine with llama.cpp for AMD GPU.
-# UEllamaCpp is a Unreal Engine project that uses llama.cpp for LLM inference 
+### UEllamaCpp is an Unreal Engine project that uses llama.cpp for LLM inference. The main interface for llama.cpp is the thirdparty plugin llamaCppPlugin 
 
 ### Requires following libs:
 - OpenMP(libomp.lib)
