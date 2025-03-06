@@ -25,10 +25,12 @@ void FllamaCppPluginModule::StartupModule()
     LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/llamaCppPluginLibrary/Mac/Release/libExampleLibrary.dylib"));
 #endif // PLATFORM_WINDOWS
 
-	Model = nullptr;
-	LlamaCppHelperLibHandle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
+	Model_ = nullptr;
+	Ctx_ = nullptr;
+	Smpl_ = nullptr;
+	LlamaCppHelperLibHandle_ = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
 
-	if (LlamaCppHelperLibHandle)
+	if (LlamaCppHelperLibHandle_)
 	{
 		// Call the test function in the third party library that opens a message box
 		LoadBackend();		
@@ -40,29 +42,57 @@ void FllamaCppPluginModule::StartupModule()
 	}	
 }
 
+
+
+static void log_callback(ggml_log_level level, const char* fmt, void* data)
+{
+	FString Fmt(fmt);
+	//UE_LOG(LogTemp, Error, TEXT("%s"), *Fmt);
+	switch (level)
+	{
+		case GGML_LOG_LEVEL_ERROR:
+			UE_LOG(LlamaCpp, Error, TEXT("%s"), *Fmt);
+			break;
+		case GGML_LOG_LEVEL_WARN:
+			UE_LOG(LlamaCpp, Warning, TEXT("%s"), *Fmt);
+			break;
+		default:
+			UE_LOG(LlamaCpp, Display, TEXT("%s"), *Fmt);
+			break;
+	}	
+}
+
 void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32 InNgl)
 {
+	LogSet(log_callback, nullptr);
 	auto Path = StringCast<ANSICHAR>(*InModelPath);
-	Model = LoadModel(InNgl, Path.Get());
-	if (Model)
+	Model_ = LoadModel(InNgl, Path.Get());
+	if (Model_)
 	{
-		UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Model loaded"));
+		//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Model loaded"));
 		//FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ThirdPartyLibraryError", "Model loaded"));
-		const llama_vocab* VocabModel = GetModelVocab(Model);
+		const llama_vocab* VocabModel = GetModelVocab(Model_);
 		//llama_token* Tokens = nullptr;
 		TArray<llama_token> Tokens;
 		int32_t NTokens = -TokenizePrompt(VocabModel, "What is your name ?", nullptr, 0);
 		Tokens.AddZeroed(NTokens);
 		//Tokens = new llama_token[NTokens]();
 		auto Ret = TokenizePrompt(VocabModel, "What is your name ?", Tokens.GetData(), Tokens.Num());
-		UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %d Ret value"), Ret);
+		//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %d Ret value"), Ret);
 		if (Ret < 0)
 		{
-			UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Unable to tokenize"));
+			//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Unable to tokenize"));
 		}
 		else
 		{
 			UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %d valid tokens"), NTokens);
+			int32_t n_predict = 32;
+			
+			Ctx_ = InitializeContext(NTokens, n_predict, Model_);
+			if (Ctx_)
+			{
+				//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Valid context"));
+			}
 			//FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ThirdPartyLibraryError", "valid tokens"));
 		}
 		for (auto i : Tokens)
@@ -70,8 +100,13 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 			char buff[128];
 			int32 r = PrintPromptByToken(VocabModel, i, buff);
 			//FString s(buff);
-			UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %s valid tokens"), *FString(buff));
+			//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %s valid tokens"), *FString(buff));
 			//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %d valid tokens"), i);
+		}
+		Smpl_ = InitializeSampler(false);
+		if (Smpl_)
+		{
+			//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Valid sampler"));
 		}
 		//InitializeContext()
 	}
@@ -81,14 +116,17 @@ void FllamaCppPluginModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
-
-	UnloadModel(Model);
-	Model = nullptr;
+	UnloadSmpl(Smpl_);
+	UnloadCtx(Ctx_);
+	UnloadModel(Model_);
+	Smpl_ = nullptr;
+	Ctx_ = nullptr;
+	Model_ = nullptr;
 
 
 	// Free the dll handle
-	FPlatformProcess::FreeDllHandle(LlamaCppHelperLibHandle);
-	LlamaCppHelperLibHandle = nullptr;
+	FPlatformProcess::FreeDllHandle(LlamaCppHelperLibHandle_);
+	LlamaCppHelperLibHandle_ = nullptr;
 }
 
 #undef LOCTEXT_NAMESPACE

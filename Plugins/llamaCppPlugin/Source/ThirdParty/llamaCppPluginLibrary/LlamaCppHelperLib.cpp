@@ -63,9 +63,10 @@ DLLEXPORT int32_t TokenizePromptEx(const char* InPrompt, const llama_vocab* InVo
     return NoOfTokens;
 }
 
-DLLEXPORT bool InitializeContext(int InNPrompt, int InNPredict, llama_model* InModel, llama_context* OutCtx)
+DLLEXPORT llama_context* InitializeContext(int InNPrompt, int InNPredict, llama_model* InModel)
 {
-    if(InModel && !OutCtx)
+
+    if(InModel)
     {
         llama_context_params ctx_params = llama_context_default_params();
         // n_ctx is the context size
@@ -75,19 +76,43 @@ DLLEXPORT bool InitializeContext(int InNPrompt, int InNPredict, llama_model* InM
         // enable performance counters
         ctx_params.no_perf = false;
 
-        OutCtx = llama_init_from_model(InModel, ctx_params);
-
-        return (OutCtx != nullptr);
+        return llama_init_from_model(InModel, ctx_params);        
     }
     else
     {
-        return false;
+        return nullptr;
     }    
 }
 
-DLLEXPORT int32_t PrintPromptByToken(const llama_vocab* InVocab, llama_token InToken, char *InBuff)
+DLLEXPORT llama_sampler* InitializeSampler(bool InMeasurePerformance)
 {
-    return (InVocab && InBuff) ? llama_token_to_piece(InVocab, InToken, InBuff, sizeof(InBuff), 0, true) : -1;
+    auto sparams = llama_sampler_chain_default_params();
+    sparams.no_perf = InMeasurePerformance;
+    llama_sampler* smpl = llama_sampler_chain_init(sparams);
+    llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
+    return smpl;
+}
+
+DLLEXPORT int32_t PrintPromptByToken(const llama_vocab* InVocab, llama_token InToken, char *OutBuff)
+{
+    return (InVocab && OutBuff) ? llama_token_to_piece(InVocab, InToken, OutBuff, sizeof(OutBuff), 0, true) : -1;
+}
+
+DLLEXPORT void LogSet(ggml_log_callback InCallback, void* InUserData)
+{
+    llama_log_set(InCallback, InUserData);
+}
+
+DLLEXPORT void UnloadSmpl(llama_sampler* InSmpl)
+{
+    llama_sampler_free(InSmpl);
+    //llama_print_system_info()
+    //llama_log_set()
+}
+
+DLLEXPORT void UnloadCtx(llama_context* InCtx)
+{
+    llama_free(InCtx);    
 }
 
 DLLEXPORT void UnloadModel(llama_model* InModel)
