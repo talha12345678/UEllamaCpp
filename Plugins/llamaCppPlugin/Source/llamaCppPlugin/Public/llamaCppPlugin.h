@@ -16,7 +16,7 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-	void LoadLLMModel(const FString& InModelPath, const int32 InNgl);	
+	void LoadLLMModel(const FString& InModelPath, const int32 InNgl, const FString& InPrompt);
 
 private:
 	/** Handle to the test dll we will load */
@@ -24,4 +24,5 @@ private:
 	llama_model* Model_;
 	llama_context* Ctx_;
 	llama_sampler* Smpl_;
+	llama_batch Batch_;
 };

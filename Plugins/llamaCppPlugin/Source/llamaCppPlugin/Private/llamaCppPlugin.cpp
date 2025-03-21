@@ -34,7 +34,7 @@ void FllamaCppPluginModule::StartupModule()
 	{
 		// Call the test function in the third party library that opens a message box
 		LoadBackend();		
-		LoadLLMModel("C:\\Users\\ADMIN\\Downloads\\DeepSeek-R1-Distill-Qwen-1.5B-Multilingual.i1-Q6_K.gguf", 99);
+		LoadLLMModel("C:\\Users\\ADMIN\\Downloads\\DeepSeek-R1-Distill-Qwen-1.5B-Multilingual.i1-Q6_K.gguf", 99, "Hello my name is");
 	}
 	else
 	{
@@ -62,10 +62,26 @@ static void log_callback(ggml_log_level level, const char* fmt, void* data)
 	}	
 }
 
-void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32 InNgl)
+//static_assert(TIsPointer<decltype(InToken), llama_token>::Value, "InToken must llama_token*"); \	
+// static_assert(TIsSame<decltype(InToken), llama_token*>::Value, "InToken must be a llama_token*"); \
+//static_assert(TIsSame<decltype(InNTokens), int32_t>::Value, "InToken must be a llama_token*"); \
+
+#define NextBatch(InToken, InNTokens) TIsSame<decltype(InToken), llama_token*>::Value && TIsSame<decltype(InNTokens), int32_t>::Value ? InitializeBatch(InToken, InNTokens) : llama_batch();
+ 
+
+//constexpr llama_batch NxtBatch(llama_token* InToken, int32_t InNTokens)
+//{
+	//llama_batch LBatch = InitializeBatch(InToken, InNTokens);
+	//return LBatch;
+//}
+
+void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32 InNgl, const FString& InPrompt)
 {
+	//TIsSame<
+	int32_t n_predict = 32;
 	LogSet(log_callback, nullptr);
 	auto Path = StringCast<ANSICHAR>(*InModelPath);
+	auto Prompt = StringCast<ANSICHAR>(*InPrompt);
 	Model_ = LoadModel(InNgl, Path.Get());
 	if (Model_)
 	{
@@ -74,10 +90,10 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 		const llama_vocab* VocabModel = GetModelVocab(Model_);
 		//llama_token* Tokens = nullptr;
 		TArray<llama_token> Tokens;
-		int32_t NTokens = -TokenizePrompt(VocabModel, "What is your name ?", nullptr, 0);
+		int32_t NTokens = -TokenizePrompt(VocabModel, Prompt.Get(), nullptr, 0);
 		Tokens.AddZeroed(NTokens);
 		//Tokens = new llama_token[NTokens]();
-		auto Ret = TokenizePrompt(VocabModel, "What is your name ?", Tokens.GetData(), Tokens.Num());
+		auto Ret = TokenizePrompt(VocabModel, Prompt.Get(), Tokens.GetData(), Tokens.Num());
 		//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %d Ret value"), Ret);
 		if (Ret < 0)
 		{
@@ -85,8 +101,8 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %d valid tokens"), NTokens);
-			int32_t n_predict = 32;
+			//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: %d valid tokens"), NTokens);
+			
 			
 			Ctx_ = InitializeContext(NTokens, n_predict, Model_);
 			if (Ctx_)
@@ -106,9 +122,42 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 		Smpl_ = InitializeSampler(false);
 		if (Smpl_)
 		{
-			//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Valid sampler"));
+			
 		}
-		//InitializeContext()
+		Batch_ = InitializeBatch(Tokens.GetData(), Tokens.Num());
+		
+		int NOfDecode = 0;
+		llama_token NewTokenId;
+		std::string Op;
+		for (int n_pos = 0; n_pos + Batch_.n_tokens < NTokens + n_predict;)
+		{
+			if (Decode(Ctx_, Batch_)) 
+			{
+				break;
+			}
+			n_pos += Batch_.n_tokens;
+			{
+				NewTokenId = Sample(Smpl_, Ctx_, -1);
+
+				if (IsEog(VocabModel, NewTokenId)) {
+					break;
+				}
+
+				char buff[128];
+				int32 r = PrintPromptByToken(VocabModel, NewTokenId, buff);
+				std::string Str(buff, r);
+				//FString Str(buff);
+				Op += Str;
+				//FString()
+				//log_callback(GGML_LOG_LEVEL_NONE, StringCast<ANSICHAR>(*Str).Get(), nullptr);
+				Batch_ = NextBatch(&NewTokenId, 1);
+				NOfDecode++;
+			}
+			
+		}
+
+		FString UEOp(Op.c_str());
+		UE_LOG(LlamaCpp, Display, TEXT("%s"), *UEOp);
 	}
 }
 

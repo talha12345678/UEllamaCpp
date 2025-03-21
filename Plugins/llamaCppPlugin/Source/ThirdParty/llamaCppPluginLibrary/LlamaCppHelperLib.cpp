@@ -92,6 +92,37 @@ DLLEXPORT llama_sampler* InitializeSampler(bool InMeasurePerformance)
     llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
     return smpl;
 }
+DLLEXPORT llama_batch InitializeBatch(llama_token* InTokens, int32_t InNTokens)
+{
+    llama_batch batch;
+    batch = (InTokens) ? llama_batch_get_one(InTokens, InNTokens) : batch;
+    return batch;
+} 
+
+DLLEXPORT int32_t Decode(llama_context* InCtx, llama_batch InBatch)
+{
+    return llama_decode(InCtx, InBatch);
+}
+
+DLLEXPORT llama_token Sample(llama_sampler* InSmpl, llama_context* InCtx, int32_t InIndex)
+{
+    return llama_sampler_sample(InSmpl, InCtx, InIndex);
+}
+
+DLLEXPORT bool IsEog(const llama_vocab* InVocab, llama_token InToken)
+{
+    return llama_vocab_is_eog(InVocab, InToken);
+}
+
+DLLEXPORT uint32_t GetCtxSize(llama_context* InCtx)
+{
+    return llama_n_ctx(InCtx);    
+}
+
+DLLEXPORT int32_t GetCtxSizeUsed(llama_context* InCtx)
+{
+    return llama_get_kv_cache_used_cells(InCtx);
+}
 
 DLLEXPORT int32_t PrintPromptByToken(const llama_vocab* InVocab, llama_token InToken, char *OutBuff)
 {
