@@ -34,7 +34,7 @@ void FllamaCppPluginModule::StartupModule()
 	{
 		// Call the test function in the third party library that opens a message box
 		LoadBackend();		
-		LoadLLMModel("C:\\Users\\ADMIN\\Downloads\\DeepSeek-R1-Distill-Qwen-1.5B-Multilingual.i1-Q6_K.gguf", 99, "Hello my name is");
+		LoadLLMModel("C:\\Users\\ADMIN\\Downloads\\DeepSeek-R1-Distill-Qwen-1.5B-Multilingual.i1-Q6_K.gguf", 99, "Generate 3x3 minesweeper grid");
 	}
 	else
 	{
@@ -79,12 +79,14 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 {
 	//TIsSame<
 	int32_t n_predict = 32;
+	//int32_t n_predict = 1000;
 	LogSet(log_callback, nullptr);
 	auto Path = StringCast<ANSICHAR>(*InModelPath);
 	auto Prompt = StringCast<ANSICHAR>(*InPrompt);
 	Model_ = LoadModel(InNgl, Path.Get());
 	if (Model_)
 	{
+		const char* DefTmpl = GetDefModelChatTempl(Model_);
 		//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Model loaded"));
 		//FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ThirdPartyLibraryError", "Model loaded"));
 		const llama_vocab* VocabModel = GetModelVocab(Model_);
@@ -107,6 +109,8 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 			Ctx_ = InitializeContext(NTokens, n_predict, Model_);
 			if (Ctx_)
 			{
+				UE_LOG(LlamaCpp, Error, TEXT("LlamaCpp: current context size: %d"), GetCtxSize(Ctx_));
+				//GetCtxSize()
 				//UE_LOG(LogTemp, Error, TEXT("LlamaCpp: Valid context"));
 			}
 			//FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ThirdPartyLibraryError", "valid tokens"));
@@ -126,11 +130,44 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 		}
 		Batch_ = InitializeBatch(Tokens.GetData(), Tokens.Num());
 		
+		
+
 		int NOfDecode = 0;
 		llama_token NewTokenId;
 		std::string Op;
-		for (int n_pos = 0; n_pos + Batch_.n_tokens < NTokens + n_predict;)
+		while (true)
 		{
+			int32_t TotalCtxSize = GetCtxSize(Ctx_);
+			if ((GetCtxSizeUsed(Ctx_) + Batch_.n_tokens) > TotalCtxSize)
+			{
+				break;
+			}
+
+			if (Decode(Ctx_, Batch_))
+			{
+				break;
+			}
+
+			NewTokenId = Sample(Smpl_, Ctx_, -1);
+
+			if (IsEog(VocabModel, NewTokenId)) {
+				break;
+			}
+
+			char buff[256];
+			int32 r = PrintPromptByToken(VocabModel, NewTokenId, buff);
+			if (r > 0)
+			{
+				std::string Str(buff, r);
+				Op += Str;				
+			}
+			
+			Batch_ = NextBatch(&NewTokenId, 1);
+
+		}
+		/*for (int n_pos = 0; n_pos + Batch_.n_tokens < NTokens + n_predict;)
+		{
+			//UE_LOG(LlamaCpp, Error, TEXT("LlamaCpp: context size used: %d"), GetCtxSizeUsed(Ctx_));
 			if (Decode(Ctx_, Batch_)) 
 			{
 				break;
@@ -154,7 +191,7 @@ void FllamaCppPluginModule::LoadLLMModel(const FString& InModelPath, const int32
 				NOfDecode++;
 			}
 			
-		}
+		}*/
 
 		FString UEOp(Op.c_str());
 		UE_LOG(LlamaCpp, Display, TEXT("%s"), *UEOp);

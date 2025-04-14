@@ -24,6 +24,8 @@ DLLIMPORT llama_token Sample(llama_sampler* InSmpl, llama_context* InCtx, int32_
 DLLIMPORT bool IsEog(const llama_vocab* InVocab, llama_token InToken);
 DLLIMPORT uint32_t GetCtxSize(llama_context* InCtx);
 DLLIMPORT int32_t GetCtxSizeUsed(llama_context* InCtx);
+DLLIMPORT const char* GetDefModelChatTempl(llama_model* InModel);
+DLLIMPORT int32_t ApplyTempl(const char* InTmpl, const llama_chat_message* InChatMsg, size_t InNoOfChatMsgs, bool IsAssMsgToken, char* OutFormattedBuff, int32_t InSizeOfBuffer);
 DLLIMPORT int32_t PrintPromptByToken(const llama_vocab* InVocab, llama_token InToken, char* OutBuff);
 DLLIMPORT void LogSet(ggml_log_callback InCallback, void* InUserData);
 DLLIMPORT void UnloadSmpl(llama_sampler* InSmpl);

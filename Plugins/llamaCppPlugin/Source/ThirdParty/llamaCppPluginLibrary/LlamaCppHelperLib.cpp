@@ -124,6 +124,16 @@ DLLEXPORT int32_t GetCtxSizeUsed(llama_context* InCtx)
     return llama_get_kv_cache_used_cells(InCtx);
 }
 
+DLLEXPORT const char* GetDefModelChatTempl(llama_model* InModel)
+{
+    return llama_model_chat_template(InModel, nullptr);
+}
+
+DLLEXPORT int32_t ApplyTempl(const char* InTmpl, const llama_chat_message* InChatMsg, size_t InNoOfChatMsgs, bool IsAssMsgToken, char* OutFormattedBuff, int32_t InSizeOfBuffer)
+{
+    return llama_chat_apply_template(InTmpl, InChatMsg, InNoOfChatMsgs, IsAssMsgToken, OutFormattedBuff, InSizeOfBuffer);
+}
+
 DLLEXPORT int32_t PrintPromptByToken(const llama_vocab* InVocab, llama_token InToken, char *OutBuff)
 {
     return (InVocab && OutBuff) ? llama_token_to_piece(InVocab, InToken, OutBuff, sizeof(OutBuff), 0, true) : -1;
